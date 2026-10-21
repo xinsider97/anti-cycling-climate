@@ -1,0 +1,10 @@
+{
+  "domain": "anti_cycling_climate",
+  "name": "Anti-Cycling Climate",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://github.com/",
+  "iot_class": "local_push",
+  "version": "0.1.0",
+  "requirements": []
+}

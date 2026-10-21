@@ -1,0 +1,41 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Anti-Cycling Climate",
+        "description": "Choose a climate entity and room temperature sensor, then set the target slider range.",
+        "data": {
+          "climate_entity": "Climate entity",
+          "sensor_entity": "Room temperature sensor",
+          "target_min": "Slider minimum (°C)",
+          "target_max": "Slider maximum (°C)",
+          "target_step": "Slider step (°C)",
+          "warm_margin": "Temperature above target before Anti-Cycling activates (°C)",
+          "cooling_setback": "Heating setpoint while too warm (°C)",
+          "heat_offset": "Heating setpoint offset in the normal hysteresis range (°C)"
+        }
+      }
+    },
+    "error": {
+      "invalid_climate": "Select an available climate entity.",
+      "unsupported_climate": "The climate entity is missing required temperature attributes or HVAC modes.",
+      "invalid_sensor": "Select an available sensor entity.",
+      "invalid_range": "Slider minimum must be lower than slider maximum."
+    },
+    "abort": {
+      "already_configured": "This climate and sensor combination is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Anti-Cycling settings",
+        "data": {
+          "warm_margin": "Temperature above target before Anti-Cycling activates (°C)",
+          "cooling_setback": "Heating setpoint while too warm (°C)",
+          "heat_offset": "Heating setpoint offset in the normal hysteresis range (°C)"
+        }
+      }
+    }
+  }
+}
