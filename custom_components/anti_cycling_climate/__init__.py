@@ -26,8 +26,6 @@ from .const import (
     DEFAULT_WARM_MARGIN,
     DOMAIN,
     PLATFORMS,
-    WARM_MARGIN,
-    COOLING_SETBACK,
 )
 
 _LOGGER = logging.getLogger(__name__)
