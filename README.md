@@ -21,7 +21,7 @@ A HACS custom integration that applies the Anti-Cycling climate behavior to any 
 
 The selected climate entity must expose `current_temperature`, `temperature`, and at least one of `heat`, `cool`, or `dry` in its supported HVAC modes. The temperature sensor must have a numeric state. Entity selection is generic; no Midea-specific integration is required.
 
-The default target-temperature slider range is 16–30 °C in 0.5 °C steps. These values are configurable during setup. Hysteresis settings can be changed later in the integration's **Configure** options. Defaults match the supplied automation: 1.2 °C above target, 17 °C setback while too warm, and a 2 °C offset in the normal heating range. The integration uses °C, matching the automation logic it replaces.
+The target-temperature slider automatically uses the selected climate entity's `min_temp`, `max_temp`, and `target_temp_step` attributes. All commands are clamped to the climate entity's allowed range and rounded to its supported temperature increment. Hysteresis settings can be changed during setup and later in the integration's **Configure** options. Defaults match the supplied automation: 1.2 °C above target, 17 °C setback while too warm (clamped to the device limits when necessary), and a 2 °C offset in the normal heating range. The integration uses °C, matching the automation logic it replaces.
 
 ## Behavior
 

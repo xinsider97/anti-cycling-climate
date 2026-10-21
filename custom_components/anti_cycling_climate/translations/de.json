@@ -1,0 +1,63 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Anti-Cycling Climate einrichten",
+        "description": "Wähle das Klimagerät und den Raumtemperatursensor aus, die gemeinsam geregelt werden sollen.",
+        "data": {
+          "climate_entity": "Klimagerät",
+          "sensor_entity": "Raumtemperatursensor"
+        },
+        "data_description": {
+          "climate_entity": "Die Climate-Entität, deren Modi Heizen, Kühlen oder Trocknen Anti-Cycling verwenden sollen.",
+          "sensor_entity": "Der separate Sensor für die tatsächliche Raumtemperatur. Die Entität muss einen numerischen Temperaturwert liefern."
+        }
+      },
+      "settings": {
+        "title": "Temperatur- und Hysterese-Einstellungen",
+        "description": "Die Grenzen des Solltemperatur-Sliders werden automatisch aus den vom Klimagerät unterstützten min_temp- und max_temp-Werten übernommen.",
+        "data": {
+          "warm_margin": "Übertemperatur-Abstand",
+          "cooling_setback": "Rückstelltemperatur beim Heizen",
+          "heat_offset": "Absenkung im normalen Hysteresebereich"
+        },
+        "data_description": {
+          "warm_margin": "Wie weit die Raumtemperatur über dem Sollwert liegen muss, bevor Anti-Cycling den Heiz-Sollwert absenkt. Standard: 1,2 °C.",
+          "cooling_setback": "Der Heiz-Sollwert, der bei erkannter Übertemperatur gesetzt wird. Muss innerhalb der zulässigen Temperaturspanne des Klimageräts liegen. Standard: 17 °C, bei Bedarf auf die Gerätegrenzen begrenzt.",
+          "heat_offset": "Abstand zur aktuellen Temperatur, wenn noch keine Übertemperatur erkannt wurde. Standard: 2 °C."
+        }
+      }
+    },
+    "error": {
+      "invalid_climate": "Bitte wähle eine verfügbare Climate-Entität aus.",
+      "unsupported_climate": "Das Klimagerät benötigt die Attribute current_temperature, temperature und hvac_modes sowie mindestens einen Modus heat, cool oder dry.",
+      "invalid_sensor": "Bitte wähle eine verfügbare Sensor-Entität aus.",
+      "missing_temperature_limits": "Das Klimagerät stellt keine gültigen min_temp- und max_temp-Grenzen bereit. Sichere Temperaturgrenzen können daher nicht eingerichtet werden.",
+      "setback_out_of_range": "Die Rückstelltemperatur muss innerhalb der vom Klimagerät erlaubten Grenzen liegen."
+    },
+    "abort": {
+      "already_configured": "Diese Kombination aus Klimagerät und Temperatursensor ist bereits eingerichtet."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Anti-Cycling-Einstellungen",
+        "description": "Die Rückstelltemperatur muss innerhalb der vom Klimagerät unterstützten Temperaturgrenzen liegen.",
+        "data": {
+          "warm_margin": "Übertemperatur-Abstand",
+          "cooling_setback": "Rückstelltemperatur beim Heizen",
+          "heat_offset": "Absenkung im normalen Hysteresebereich"
+        },
+        "data_description": {
+          "warm_margin": "Temperaturabstand über dem Raum-Sollwert, ab dem die Übertemperaturbehandlung aktiviert wird. Standard: 1,2 °C.",
+          "cooling_setback": "Heiz-Sollwert bei erkannter Übertemperatur. Zulässiger Bereich des ausgewählten Klimageräts wird erzwungen. Standard: 17 °C.",
+          "heat_offset": "Temperaturabstand zur aktuellen Klimagerät-Temperatur im normalen Hysteresebereich. Standard: 2 °C."
+        }
+      }
+    },
+    "error": {
+      "setback_out_of_range": "Die Rückstelltemperatur muss innerhalb der Gerätegrenzen liegen."
+    }
+  }
+}

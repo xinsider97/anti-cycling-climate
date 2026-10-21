@@ -7,7 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import AntiCyclingRuntime, async_set_enabled
+from . import AntiCyclingRuntime, async_set_enabled, device_info_for_climate
 
 
 async def async_setup_entry(
@@ -29,6 +29,9 @@ class AntiCyclingEnableSwitch(SwitchEntity):
         self.entry = entry
         runtime: AntiCyclingRuntime = hass.data[entry.domain][entry.entry_id]
         self._attr_unique_id = f"{entry.entry_id}_enabled"
+        self._attr_device_info = device_info_for_climate(
+            hass, runtime.climate_entity, entry
+        )
         self._attr_is_on = runtime.enabled
 
     async def async_turn_on(self, **kwargs) -> None:

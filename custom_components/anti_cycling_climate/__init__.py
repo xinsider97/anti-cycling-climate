@@ -7,7 +7,10 @@ import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -40,6 +43,7 @@ class AntiCyclingRuntime:
     target_min: float
     target_max: float
     target_step: float
+    target_temp_step: float
     warm_margin: float
     cooling_setback: float
     heat_offset: float
@@ -62,12 +66,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         target_min=float(entry.data[CONF_TARGET_MIN]),
         target_max=float(entry.data[CONF_TARGET_MAX]),
         target_step=float(entry.data[CONF_TARGET_STEP]),
+        target_temp_step=float(entry.data[CONF_TARGET_STEP]),
         warm_margin=float(entry.options.get(CONF_WARM_MARGIN, entry.data[CONF_WARM_MARGIN])),
         cooling_setback=float(entry.options.get(CONF_COOLING_SETBACK, entry.data[CONF_COOLING_SETBACK])),
         heat_offset=float(entry.options.get(CONF_HEAT_OFFSET, entry.data[CONF_HEAT_OFFSET])),
         target=float(entry.options.get("target", DEFAULT_TARGET)),
         enabled=bool(entry.options.get("enabled", DEFAULT_ENABLED)),
     )
+    runtime.target = min(max(runtime.target, runtime.target_min), runtime.target_max)
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = runtime
 
     @callback
@@ -92,6 +98,27 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         return False
     hass.data[DOMAIN].pop(entry.entry_id, None)
     return True
+
+
+def device_info_for_climate(
+    hass: HomeAssistant, climate_entity_id: str, entry: ConfigEntry
+) -> DeviceInfo:
+    """Attach controls to the selected climate's existing device when available."""
+    entity_registry = er.async_get(hass)
+    climate_entity = entity_registry.async_get(climate_entity_id)
+    if climate_entity is not None and climate_entity.device_id is not None:
+        device = dr.async_get(hass).async_get(climate_entity.device_id)
+        if device is not None and device.identifiers:
+            return DeviceInfo(
+                identifiers=set(device.identifiers),
+                name=device.name,
+                manufacturer=device.manufacturer,
+                model=device.model,
+            )
+    return DeviceInfo(
+        identifiers={(DOMAIN, entry.entry_id)},
+        name=entry.title,
+    )
 
 
 async def _async_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -161,9 +188,15 @@ async def _async_apply_control(hass: HomeAssistant, runtime: AntiCyclingRuntime)
             return
     except (TypeError, ValueError):
         pass
+    setpoint = min(max(setpoint, runtime.target_min), runtime.target_max)
+    increment = runtime.target_temp_step
+    setpoint = runtime.target_min + round(
+        (setpoint - runtime.target_min) / increment
+    ) * increment
+    setpoint = min(max(setpoint, runtime.target_min), runtime.target_max)
     await hass.services.async_call(
         "climate",
         "set_temperature",
-        {"entity_id": runtime.climate_entity, "temperature": round(setpoint, 1)},
+        {"entity_id": runtime.climate_entity, "temperature": round(setpoint, 2)},
         blocking=False,
     )

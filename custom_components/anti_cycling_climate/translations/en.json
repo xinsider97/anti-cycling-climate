@@ -1,0 +1,63 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Anti-Cycling Climate",
+        "description": "Choose the climate entity and room temperature sensor that should be controlled together.",
+        "data": {
+          "climate_entity": "Climate device",
+          "sensor_entity": "Room temperature sensor"
+        },
+        "data_description": {
+          "climate_entity": "The climate entity whose heat, cool, or dry modes should use Anti-Cycling.",
+          "sensor_entity": "The separate sensor measuring actual room temperature. It must provide a numeric temperature state."
+        }
+      },
+      "settings": {
+        "title": "Temperature and hysteresis settings",
+        "description": "The target slider limits are automatically taken from the climate device's supported min_temp and max_temp values.",
+        "data": {
+          "warm_margin": "Over-temperature margin",
+          "cooling_setback": "Heating setback temperature",
+          "heat_offset": "Offset in the normal hysteresis range"
+        },
+        "data_description": {
+          "warm_margin": "How far room temperature must exceed the target before Anti-Cycling lowers the heating setpoint. Default: 1.2 °C.",
+          "cooling_setback": "The heating setpoint used when the room is too warm. Must be within the climate device's allowed range. Default: 17 °C, clamped to the device limits when needed.",
+          "heat_offset": "Offset below the current climate temperature while within the normal hysteresis range. Default: 2 °C."
+        }
+      }
+    },
+    "error": {
+      "invalid_climate": "Select an available climate entity.",
+      "unsupported_climate": "The climate entity must expose current_temperature, temperature, and hvac_modes, and support at least one of heat, cool, or dry.",
+      "invalid_sensor": "Select an available sensor entity.",
+      "missing_temperature_limits": "The climate entity does not provide valid min_temp and max_temp limits, so safe temperature bounds cannot be configured.",
+      "setback_out_of_range": "The setback temperature must be within the climate device's allowed limits."
+    },
+    "abort": {
+      "already_configured": "This climate and temperature sensor combination is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Anti-Cycling settings",
+        "description": "The setback temperature must remain within the climate device's supported temperature limits.",
+        "data": {
+          "warm_margin": "Over-temperature margin",
+          "cooling_setback": "Heating setback temperature",
+          "heat_offset": "Offset in the normal hysteresis range"
+        },
+        "data_description": {
+          "warm_margin": "Temperature above the room target that activates over-temperature handling. Default: 1.2 °C.",
+          "cooling_setback": "Heating setpoint used when the room is too warm. The climate device's allowed range is enforced. Default: 17 °C.",
+          "heat_offset": "Offset below the current climate temperature in the normal hysteresis range. Default: 2 °C."
+        }
+      }
+    },
+    "error": {
+      "setback_out_of_range": "The setback temperature must be within the device limits."
+    }
+  }
+}
