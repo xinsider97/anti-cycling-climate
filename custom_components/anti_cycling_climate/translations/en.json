@@ -15,16 +15,16 @@
       },
       "settings": {
         "title": "Temperature and hysteresis settings",
-        "description": "The target slider limits are automatically taken from the climate device's supported min_temp and max_temp values.",
+        "description": "The virtual climate entity shows the requested target. Temperatures and hysteresis settings use the selected climate entity's temperature unit.",
         "data": {
           "warm_margin": "Over-temperature margin",
           "cooling_setback": "Heating setback temperature",
           "heat_offset": "Offset in the normal hysteresis range"
         },
         "data_description": {
-          "warm_margin": "How far room temperature must exceed the target before Anti-Cycling lowers the heating setpoint. Default: 1.2 °C.",
-          "cooling_setback": "The heating setpoint used when the room is too warm. Must be within the climate device's allowed range. Default: 17 °C, clamped to the device limits when needed.",
-          "heat_offset": "Offset below the current climate temperature while within the normal hysteresis range. Default: 2 °C."
+          "warm_margin": "Enter this in the selected climate's temperature unit. The default is equivalent to 1.2 °C.",
+          "cooling_setback": "Heating setpoint used when the room is too warm, in the climate's unit. Must stay within device limits. The default is equivalent to 17 °C.",
+          "heat_offset": "Offset below current climate temperature in the normal hysteresis range, in the climate's unit. The default is equivalent to 2 °C."
         }
       }
     },
@@ -50,9 +50,9 @@
           "heat_offset": "Offset in the normal hysteresis range"
         },
         "data_description": {
-          "warm_margin": "Temperature above the room target that activates over-temperature handling. Default: 1.2 °C.",
-          "cooling_setback": "Heating setpoint used when the room is too warm. The climate device's allowed range is enforced. Default: 17 °C.",
-          "heat_offset": "Offset below the current climate temperature in the normal hysteresis range. Default: 2 °C."
+          "warm_margin": "Temperature above the room target that activates over-temperature handling, in the climate's unit. Default equivalent: 1.2 °C.",
+          "cooling_setback": "Heating setpoint used when the room is too warm, in the climate's unit. The climate device's allowed range is enforced. Default equivalent: 17 °C.",
+          "heat_offset": "Offset below the current climate temperature in the normal hysteresis range, in the climate's unit. Default equivalent: 2 °C."
         }
       }
     },

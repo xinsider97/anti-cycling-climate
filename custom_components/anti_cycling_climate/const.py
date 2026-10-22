@@ -1,7 +1,7 @@
 """Constants for Anti-Cycling Climate."""
 
 DOMAIN = "anti_cycling_climate"
-PLATFORMS = ["number", "switch"]
+PLATFORMS = ["climate", "switch"]
 
 CONF_CLIMATE_ENTITY = "climate_entity"
 CONF_SENSOR_ENTITY = "sensor_entity"
@@ -11,6 +11,7 @@ CONF_TARGET_STEP = "target_step"
 CONF_WARM_MARGIN = "warm_margin"
 CONF_COOLING_SETBACK = "cooling_setback"
 CONF_HEAT_OFFSET = "heat_offset"
+CONF_TEMPERATURE_UNIT = "temperature_unit"
 
 DEFAULT_TARGET = 22.0
 DEFAULT_TARGET_MIN = 16.0

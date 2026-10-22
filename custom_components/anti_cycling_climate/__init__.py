@@ -6,10 +6,13 @@ from dataclasses import dataclass
 import logging
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import UnitOfTemperature
 from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.util.unit_conversion import TemperatureConverter
 
 from .const import (
     CONF_CLIMATE_ENTITY,
@@ -19,6 +22,7 @@ from .const import (
     CONF_TARGET_MAX,
     CONF_TARGET_MIN,
     CONF_TARGET_STEP,
+    CONF_TEMPERATURE_UNIT,
     CONF_WARM_MARGIN,
     DEFAULT_COOLING_SETBACK,
     DEFAULT_HEAT_OFFSET,
@@ -40,8 +44,9 @@ class AntiCyclingRuntime:
     sensor_entity: str
     target_min: float
     target_max: float
-    target_step: float
     target_temp_step: float
+    hysteresis_step: float
+    temperature_unit: str
     warm_margin: float
     cooling_setback: float
     heat_offset: float
@@ -49,6 +54,7 @@ class AntiCyclingRuntime:
     enabled: bool = DEFAULT_ENABLED
     warm_latch: bool = False
     unsubscribe: object | None = None
+    virtual_climate: object | None = None
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -63,19 +69,48 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         sensor_entity=entry.data[CONF_SENSOR_ENTITY],
         target_min=float(entry.data[CONF_TARGET_MIN]),
         target_max=float(entry.data[CONF_TARGET_MAX]),
-        target_step=float(entry.data[CONF_TARGET_STEP]),
         target_temp_step=float(entry.data[CONF_TARGET_STEP]),
+        hysteresis_step=_convert_celsius(
+            0.5,
+            entry.data.get(CONF_TEMPERATURE_UNIT, hass.config.units.temperature_unit),
+            delta=True,
+        ),
+        temperature_unit=entry.data.get(
+            CONF_TEMPERATURE_UNIT, hass.config.units.temperature_unit
+        ),
         warm_margin=float(entry.options.get(CONF_WARM_MARGIN, entry.data[CONF_WARM_MARGIN])),
         cooling_setback=float(entry.options.get(CONF_COOLING_SETBACK, entry.data[CONF_COOLING_SETBACK])),
         heat_offset=float(entry.options.get(CONF_HEAT_OFFSET, entry.data[CONF_HEAT_OFFSET])),
-        target=float(entry.options.get("target", DEFAULT_TARGET)),
+        target=float(
+            entry.options.get(
+                "target",
+                _convert_celsius(
+                    DEFAULT_TARGET,
+                    entry.data.get(
+                        CONF_TEMPERATURE_UNIT, hass.config.units.temperature_unit
+                    ),
+                ),
+            )
+        ),
         enabled=bool(entry.options.get("enabled", DEFAULT_ENABLED)),
     )
-    runtime.target = min(max(runtime.target, runtime.target_min), runtime.target_max)
+    runtime.target = normalize_target(runtime, runtime.target)
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = runtime
+
+    # The previous integration version exposed the requested target as a number
+    # entity. The virtual climate now owns that control, so remove the obsolete
+    # registry entry after preserving its value in config-entry options.
+    entity_registry = er.async_get(hass)
+    old_target_entity_id = entity_registry.async_get_entity_id(
+        "number", DOMAIN, f"{entry.entry_id}_target"
+    )
+    if old_target_entity_id is not None:
+        entity_registry.async_remove(old_target_entity_id)
 
     @callback
     def _state_changed(event: Event) -> None:
+        if runtime.virtual_climate is not None:
+            runtime.virtual_climate.async_write_ha_state()
         hass.async_create_task(_async_apply_control(hass, runtime))
 
     runtime.unsubscribe = async_track_state_change_event(
@@ -107,6 +142,26 @@ def device_info_for_entry(entry: ConfigEntry) -> DeviceInfo:
     )
 
 
+def _convert_celsius(value: float, unit: str, *, delta: bool = False) -> float:
+    """Convert a Celsius default to the climate entity's unit."""
+    if unit == UnitOfTemperature.FAHRENHEIT:
+        if delta:
+            return value * 9 / 5
+        return TemperatureConverter.convert(
+            value, UnitOfTemperature.CELSIUS, UnitOfTemperature.FAHRENHEIT
+        )
+    return value
+
+
+def normalize_target(runtime: AntiCyclingRuntime, target: float) -> float:
+    """Clamp and align a requested target to the source climate's step."""
+    target = min(max(target, runtime.target_min), runtime.target_max)
+    target = runtime.target_min + round(
+        (target - runtime.target_min) / runtime.target_temp_step
+    ) * runtime.target_temp_step
+    return min(max(target, runtime.target_min), runtime.target_max)
+
+
 async def _async_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload when hysteresis settings change in the options flow."""
     runtime: AntiCyclingRuntime | None = hass.data.get(DOMAIN, {}).get(entry.entry_id)
@@ -121,10 +176,13 @@ async def _async_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> Non
 
 
 async def async_set_target(hass: HomeAssistant, entry: ConfigEntry, target: float) -> None:
-    """Store target slider changes as config-entry options."""
+    """Store the virtual climate's requested temperature."""
     runtime: AntiCyclingRuntime = hass.data[DOMAIN][entry.entry_id]
+    target = normalize_target(runtime, target)
     runtime.target = target
     hass.config_entries.async_update_entry(entry, options={**entry.options, "target": target})
+    if runtime.virtual_climate is not None:
+        runtime.virtual_climate.async_write_ha_state()
     await _async_apply_control(hass, runtime)
 
 
@@ -133,20 +191,29 @@ async def async_set_enabled(hass: HomeAssistant, entry: ConfigEntry, enabled: bo
     runtime: AntiCyclingRuntime = hass.data[DOMAIN][entry.entry_id]
     runtime.enabled = enabled
     hass.config_entries.async_update_entry(entry, options={**entry.options, "enabled": enabled})
-    if enabled:
-        await _async_apply_control(hass, runtime)
+    if runtime.virtual_climate is not None:
+        runtime.virtual_climate.async_write_ha_state()
+    await _async_apply_control(hass, runtime)
 
 
 async def _async_apply_control(hass: HomeAssistant, runtime: AntiCyclingRuntime) -> None:
     """Apply the user's anti-cycling rules to a supported climate entity."""
-    if not runtime.enabled:
-        return
     climate = hass.states.get(runtime.climate_entity)
+    if climate is None:
+        return
+    if not runtime.enabled:
+        await _async_set_underlying_temperature(hass, runtime, climate, runtime.target)
+        return
     sensor = hass.states.get(runtime.sensor_entity)
-    if climate is None or sensor is None:
+    if sensor is None:
         return
     try:
         room_temperature = float(sensor.state)
+        sensor_unit = sensor.attributes.get("unit_of_measurement", runtime.temperature_unit)
+        if sensor_unit != runtime.temperature_unit:
+            room_temperature = TemperatureConverter.convert(
+                room_temperature, sensor_unit, runtime.temperature_unit
+            )
         current_temperature = float(climate.attributes["current_temperature"])
     except (KeyError, TypeError, ValueError):
         _LOGGER.debug("Temperature unavailable for %s", runtime.climate_entity)
@@ -162,24 +229,35 @@ async def _async_apply_control(hass: HomeAssistant, runtime: AntiCyclingRuntime)
             runtime.warm_latch = True
             setpoint = runtime.cooling_setback
         elif not runtime.warm_latch:
-            setpoint = (int(current_temperature * 2) / 2) - runtime.heat_offset
+            step = runtime.hysteresis_step
+            setpoint = (int(current_temperature / step) * step) - runtime.heat_offset
     elif mode in ("cool", "dry"):
         setpoint = runtime.target if current_temperature >= runtime.target else current_temperature
 
     if setpoint is None:
         return
+    await _async_set_underlying_temperature(hass, runtime, climate, setpoint)
+
+
+async def _async_set_underlying_temperature(
+    hass: HomeAssistant,
+    runtime: AntiCyclingRuntime,
+    climate,
+    setpoint: float,
+) -> None:
+    """Clamp and send a safe setpoint to the real climate entity."""
     old_setpoint = climate.attributes.get("temperature")
-    try:
-        if old_setpoint is not None and abs(float(old_setpoint) - setpoint) < 0.01:
-            return
-    except (TypeError, ValueError):
-        pass
     setpoint = min(max(setpoint, runtime.target_min), runtime.target_max)
     increment = runtime.target_temp_step
     setpoint = runtime.target_min + round(
         (setpoint - runtime.target_min) / increment
     ) * increment
     setpoint = min(max(setpoint, runtime.target_min), runtime.target_max)
+    try:
+        if old_setpoint is not None and abs(float(old_setpoint) - setpoint) < 0.01:
+            return
+    except (TypeError, ValueError):
+        pass
     await hass.services.async_call(
         "climate",
         "set_temperature",

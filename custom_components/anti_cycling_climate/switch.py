@@ -20,8 +20,7 @@ async def async_setup_entry(
 class AntiCyclingEnableSwitch(SwitchEntity):
     """Enable or disable Anti-Cycling for one configured climate."""
 
-    _attr_has_entity_name = True
-    _attr_name = "Anti-Cycling aktiv"
+    _attr_has_entity_name = False
     _attr_icon = "mdi:autorenew"
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -29,6 +28,7 @@ class AntiCyclingEnableSwitch(SwitchEntity):
         self.entry = entry
         runtime: AntiCyclingRuntime = hass.data[entry.domain][entry.entry_id]
         self._attr_unique_id = f"{entry.entry_id}_enabled"
+        self._attr_name = f"Anti-Cycling aktiv {entry.title}"
         self._attr_device_info = device_info_for_entry(entry)
         self._attr_is_on = runtime.enabled
 

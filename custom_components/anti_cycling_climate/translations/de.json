@@ -15,16 +15,16 @@
       },
       "settings": {
         "title": "Temperatur- und Hysterese-Einstellungen",
-        "description": "Die Grenzen des Solltemperatur-Sliders werden automatisch aus den vom Klimagerät unterstützten min_temp- und max_temp-Werten übernommen.",
+        "description": "Die virtuelle Climate-Entität zeigt den gewünschten Sollwert. Werte und Hysterese-Einstellungen verwenden die Temperatureinheit des ausgewählten Klimageräts.",
         "data": {
           "warm_margin": "Übertemperatur-Abstand",
           "cooling_setback": "Rückstelltemperatur beim Heizen",
           "heat_offset": "Absenkung im normalen Hysteresebereich"
         },
         "data_description": {
-          "warm_margin": "Wie weit die Raumtemperatur über dem Sollwert liegen muss, bevor Anti-Cycling den Heiz-Sollwert absenkt. Standard: 1,2 °C.",
-          "cooling_setback": "Der Heiz-Sollwert, der bei erkannter Übertemperatur gesetzt wird. Muss innerhalb der zulässigen Temperaturspanne des Klimageräts liegen. Standard: 17 °C, bei Bedarf auf die Gerätegrenzen begrenzt.",
-          "heat_offset": "Abstand zur aktuellen Temperatur, wenn noch keine Übertemperatur erkannt wurde. Standard: 2 °C."
+          "warm_margin": "Eingabe in der Temperatureinheit des gewählten Klimageräts. Standard entspricht 1,2 °C.",
+          "cooling_setback": "Heiz-Sollwert bei Übertemperatur, in der Temperatureinheit des Klimageräts. Muss innerhalb der Gerätegrenzen liegen. Standard entspricht 17 °C.",
+          "heat_offset": "Abstand zur aktuellen Temperatur im normalen Hysteresebereich, in der Einheit des Klimageräts. Standard entspricht 2 °C."
         }
       }
     },
@@ -50,9 +50,9 @@
           "heat_offset": "Absenkung im normalen Hysteresebereich"
         },
         "data_description": {
-          "warm_margin": "Temperaturabstand über dem Raum-Sollwert, ab dem die Übertemperaturbehandlung aktiviert wird. Standard: 1,2 °C.",
-          "cooling_setback": "Heiz-Sollwert bei erkannter Übertemperatur. Zulässiger Bereich des ausgewählten Klimageräts wird erzwungen. Standard: 17 °C.",
-          "heat_offset": "Temperaturabstand zur aktuellen Klimagerät-Temperatur im normalen Hysteresebereich. Standard: 2 °C."
+          "warm_margin": "Temperaturabstand über dem Raum-Sollwert, ab dem die Übertemperaturbehandlung aktiviert wird. Eingabe in der Einheit des Klimageräts; Standard entspricht 1,2 °C.",
+          "cooling_setback": "Heiz-Sollwert bei erkannter Übertemperatur. Eingabe in der Einheit des Klimageräts; Standard entspricht 17 °C.",
+          "heat_offset": "Temperaturabstand zur aktuellen Klimagerät-Temperatur im normalen Hysteresebereich. Eingabe in der Einheit des Klimageräts; Standard entspricht 2 °C."
         }
       }
     },
