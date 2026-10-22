@@ -201,7 +201,10 @@ async def _async_apply_control(hass: HomeAssistant, runtime: AntiCyclingRuntime)
     climate = hass.states.get(runtime.climate_entity)
     if climate is None:
         return
-    if not runtime.enabled:
+    # The virtual climate mirrors all source modes and controls. Anti-Cycling
+    # is an additional heating-only policy; every other mode passes the user's
+    # requested target directly through to the physical climate.
+    if not runtime.enabled or climate.state != "heat":
         await _async_set_underlying_temperature(hass, runtime, climate, runtime.target)
         return
     sensor = hass.states.get(runtime.sensor_entity)
@@ -231,9 +234,6 @@ async def _async_apply_control(hass: HomeAssistant, runtime: AntiCyclingRuntime)
         elif not runtime.warm_latch:
             step = runtime.hysteresis_step
             setpoint = (int(current_temperature / step) * step) - runtime.heat_offset
-    elif mode in ("cool", "dry"):
-        setpoint = runtime.target if current_temperature >= runtime.target else current_temperature
-
     if setpoint is None:
         return
     await _async_set_underlying_temperature(hass, runtime, climate, setpoint)

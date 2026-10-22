@@ -6,7 +6,7 @@ A HACS custom integration that applies the Anti-Cycling climate behavior to any 
 
 - Configure one independent room/device per integration entry.
 - Select a climate entity and a room temperature sensor in the UI.
-- Get a virtual climate entity that exposes the requested target temperature and HVAC mode, plus an Anti-Cycling enable switch (`switch`).
+- Get a virtual climate entity that mirrors the source climate's HVAC modes, target, fan, preset, swing, and on/off controls where supported, plus an Anti-Cycling enable switch (`switch`).
 - No manually-created helpers or YAML automation required. The hysteresis latch is maintained internally.
 
 Home Assistant registers devices per config entry. Because the selected climate entity belongs to its source integration (for example ESPHome) and Anti-Cycling Climate has its own config entry, Home Assistant shows a separate **service device** named `<climate name> Anti-Cycling`. Its virtual climate shows the requested target (for example 22 °C), while the source climate can temporarily receive a different anti-cycling setpoint (for example 17 °C).
@@ -28,9 +28,10 @@ The virtual climate automatically uses the selected climate entity's `min_temp`,
 ## Behavior
 
 - **Heat:** at or below the target, set the climate target to the current climate temperature and clear the warm latch. At or above target + 1.2 °C, set the warm latch and command 17 °C. Otherwise, while the warm latch is clear, command the current temperature rounded down to a half degree minus 2 °C.
-- **Cool / dry:** if the climate entity's current temperature is at or above the target, command the target; otherwise command the current temperature.
-- **Off / other modes:** anti-cycling adjustments are not applied.
-- The enable switch bypasses anti-cycling and directly forwards the requested target while off. The default is on.
+- **Other HVAC modes:** the requested target is passed straight through to the physical climate.
+- When the enable switch is off, the requested target is passed straight through in every mode.
+- Supported HVAC modes, fan modes, presets, swing modes, and on/off controls are mirrored from the selected climate entity.
+- The enable switch defaults to on.
 
 ## Development
 
