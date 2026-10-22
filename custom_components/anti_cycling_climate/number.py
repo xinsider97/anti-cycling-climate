@@ -7,7 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import AntiCyclingRuntime, async_set_target, device_info_for_climate
+from . import AntiCyclingRuntime, async_set_target, device_info_for_entry
 from .const import DEFAULT_TARGET
 
 
@@ -31,9 +31,7 @@ class AntiCyclingTargetNumber(NumberEntity):
         self.entry = entry
         runtime: AntiCyclingRuntime = hass.data[entry.domain][entry.entry_id]
         self._attr_unique_id = f"{entry.entry_id}_target"
-        self._attr_device_info = device_info_for_climate(
-            hass, runtime.climate_entity, entry
-        )
+        self._attr_device_info = device_info_for_entry(entry)
         self._attr_native_min_value = runtime.target_min
         self._attr_native_max_value = runtime.target_max
         self._attr_native_step = runtime.target_step

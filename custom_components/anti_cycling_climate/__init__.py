@@ -7,10 +7,8 @@ import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Event, HomeAssistant, callback
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.event import async_track_state_change_event
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -100,24 +98,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-def device_info_for_climate(
-    hass: HomeAssistant, climate_entity_id: str, entry: ConfigEntry
-) -> DeviceInfo:
-    """Attach controls to the selected climate's existing device when available."""
-    entity_registry = er.async_get(hass)
-    climate_entity = entity_registry.async_get(climate_entity_id)
-    if climate_entity is not None and climate_entity.device_id is not None:
-        device = dr.async_get(hass).async_get(climate_entity.device_id)
-        if device is not None and device.identifiers:
-            return DeviceInfo(
-                identifiers=set(device.identifiers),
-                name=device.name,
-                manufacturer=device.manufacturer,
-                model=device.model,
-            )
+def device_info_for_entry(entry: ConfigEntry) -> DeviceInfo:
+    """Describe the Anti-Cycling service device for this climate entity."""
     return DeviceInfo(
+        entry_type=DeviceEntryType.SERVICE,
         identifiers={(DOMAIN, entry.entry_id)},
-        name=entry.title,
+        name=f"{entry.title} Anti-Cycling",
     )
 
 

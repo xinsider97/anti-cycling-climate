@@ -9,6 +9,8 @@ A HACS custom integration that applies the Anti-Cycling climate behavior to any 
 - Get a native target-temperature slider (`number`) and an Anti-Cycling enable switch (`switch`).
 - No manually-created helpers or YAML automation required. The hysteresis latch is maintained internally.
 
+Home Assistant registers devices per config entry. Because the selected climate entity belongs to its source integration (for example ESPHome) and Anti-Cycling Climate has its own config entry, Home Assistant shows a separate **service device** named `<climate name> Anti-Cycling` for the slider and switch. The entities cannot be merged into the source integration's device by a separate custom integration.
+
 ## Installation
 
 1. In HACS, open **Integrations** → **⋮** → **Custom repositories**.
