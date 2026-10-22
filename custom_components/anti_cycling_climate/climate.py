@@ -51,6 +51,9 @@ class AntiCyclingClimate(ClimateEntity):
         self._attr_min_temp = self._runtime.target_min
         self._attr_max_temp = self._runtime.target_max
         self._attr_target_temperature_step = self._runtime.target_temp_step
+        # Home Assistant versions that still build climate capabilities from
+        # the legacy property require this attribute during entity registration.
+        self._attr_temperature_unit = self._runtime.temperature_unit
         self._attr_native_temperature_unit = self._runtime.temperature_unit
         self._attr_native_target_temperature = self._runtime.target
 
